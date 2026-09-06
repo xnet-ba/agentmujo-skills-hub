@@ -1,0 +1,12 @@
+node_modules/
+dist/
+*.db
+*.db-wal
+*.db-shm
+*.log
+__pycache__/
+*.pyc
+skill-market/skills-data/
+registry.db
+.DS_Store
+*.tsbuildinfo

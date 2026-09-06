@@ -1,0 +1,24 @@
+{
+  "registry": {
+    "dbPath": "~/.config/opencode/skill-hub/registry.db",
+    "registryDir": "registry/",
+    "schemaVersion": 1,
+    "compatVersion": "0.1.0"
+  },
+  "autoInstall": true,
+  "maxRisk": "medium",
+  "minimumScore": 75,
+  "minimumStars": 0,
+  "verifiedOnly": false,
+  "autoRefresh": true,
+  "refreshInterval": "24h",
+  "maxInstalledSkills": 100,
+  "cache": {
+    "root": "~/.config/opencode/skill-hub/",
+    "cacheDir": "cache/",
+    "installedDir": "installed/",
+    "downloadsDir": "downloads/",
+    "logsDir": "logs/"
+  },
+  "installedSkillsPath": "~/.config/opencode/skills/"
+}
