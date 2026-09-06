@@ -9,10 +9,9 @@ import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
 import { fileURLToPath } from "node:url";
-import { createHash } from "node:crypto";
 
-import { openRegistry, getSkillContent } from "./lib/core.ts";
-import { securityScan } from "./lib/scoring.js";
+import { openRegistry, getSkillContent, loadHubConfig } from "./lib/core.ts";
+import { securityScan, parseFrontmatter, contentHash } from "./lib/scoring.ts";
 
 // ---------------------------------------------------------------------------
 // CLI args: --dry-run, --id <id>, --limit N, --stale-days N
@@ -27,42 +26,24 @@ for (let i = 0; i < args.length; i++) {
   if (args[i] === "--dry-run") dryRun = true;
   else if (args[i] === "--id" && args[i + 1]) {
     skillId = args[++i];
-    limit--;
   } else if (args[i] === "--limit" && args[i + 1]) {
     limit = Math.max(0, parseInt(args[++i], 10));
-    limit--;
   } else if (args[i] === "--stale-days" && args[i + 1]) {
     staleDays = Math.max(0, parseInt(args[++i], 10));
-    limit--;
   }
 }
 
 // ---------------------------------------------------------------------------
-// Configuration
+// Configuration (shared engine)
 // ---------------------------------------------------------------------------
-const root = path.join(__dirname2, "..");
-const configPath = path.join(root, "config", "config.json");
-const parsed = JSON.parse(fs.readFileSync(configPath, "utf-8"));
-const reg = parsed.registry ?? {};
-const cfg: {
-  minimumScore: number;
-  minimumStars: number;
-  maxRisk: string;
-  verifiedOnly: boolean;
-} = {
-  minimumScore: reg.minimumScore ?? parsed.minimumScore ?? 75,
-  minimumStars: reg.minimumStars ?? parsed.minimumStars ?? 0,
-  maxRisk: reg.maxRisk ?? parsed.maxRisk ?? "medium",
-  verifiedOnly: reg.verifiedOnly ?? parsed.verifiedOnly ?? false,
-};
+const cfg = loadHubConfig();
 
 // ---------------------------------------------------------------------------
 // Database
 // ---------------------------------------------------------------------------
-const dbPath = reg.dbPath ?? parsed.dbPath ?? "~/.config/opencode/skill-hub/registry.db";
-const realDbPath = dbPath.replace(/^~/, os.homedir());
-fs.mkdirSync(path.dirname(realDbPath), { recursive: true });
-const db = openRegistry(realDbPath);
+const dbPath = cfg.dbPath.replace(/^~/, os.homedir());
+fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+const db = openRegistry(dbPath);
 
 // Ensure sources exist
 const insertSource = db.prepare(
@@ -95,7 +76,7 @@ const skills = db.prepare("SELECT * FROM skills WHERE status != 'removed'").all(
   risk_level: string;
   meta_json: string;
   last_update: string | null;
-}>>;
+}>;
 
 let validatedCount = 0;
 let invalidCount = 0;
@@ -246,9 +227,3 @@ main().catch((e) => {
   console.error("[validate-skills] FATAL:", e);
   process.exit(1);
 });
-
-// Helper: content hash (reuse from scoring to avoid duplication)
-import createHash from "node:crypto";
-function contentHash(content: string): string {
-  return createHash("sha256").update(content).digest("hex").slice(0, 32);
-}

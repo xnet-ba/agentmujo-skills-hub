@@ -5,7 +5,7 @@
  * sync-github.ts, the CLI, and the web server.
  */
 
-import createHash from "node:crypto";
+import { createHash } from "node:crypto";
 
 // ---------------------------------------------------------------------------
 // §18 SECURITY SCAN

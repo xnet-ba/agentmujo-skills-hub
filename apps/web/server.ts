@@ -1,5 +1,4 @@
 import { openRegistry } from "../skills-hub/scripts/lib/core.ts";
-import { DatabaseSync } from "node:sqlite";
 import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";

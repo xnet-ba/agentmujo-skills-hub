@@ -8,9 +8,9 @@ import { DatabaseSync } from "node:sqlite";
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
-import { fileURLToPath } from "node:url";
 
-import { calculateScore } from "./lib/scoring.js";
+import { calculateScore } from "./lib/scoring.ts";
+import { openRegistry, loadHubConfig } from "./lib/core.ts";
 
 // ---------------------------------------------------------------------------
 // CLI args: --dry-run, --id <id>, --limit N
@@ -24,36 +24,18 @@ for (let i = 0; i < args.length; i++) {
   if (args[i] === "--dry-run") dryRun = true;
   else if (args[i] === "--id" && args[i + 1]) {
     skillId = args[++i];
-    limit--;
   } else if (args[i] === "--limit" && args[i + 1]) {
     limit = Math.max(0, parseInt(args[++i], 10));
-    limit--;
   }
 }
 
 // ---------------------------------------------------------------------------
-// Configuration
+// Configuration + Database (shared engine)
 // ---------------------------------------------------------------------------
-const root = path.join(__dirname2, "..");
-const configPath = path.join(root, "config", "config.json");
-const raw = fs.readFileSync(configPath, "utf-8");
-const parsed = JSON.parse(raw);
-const reg = parsed.registry ?? {};
-const cfg = {
-  minimumScore: reg.minimumScore ?? parsed.minimumScore ?? 75,
-  minimumStars: reg.minimumStars ?? parsed.minimumStars ?? 0,
-  maxRisk: reg.maxRisk ?? parsed.maxRisk ?? "medium",
-  verifiedOnly: reg.verifiedOnly ?? parsed.verifiedOnly ?? false,
-};
-
-// ---------------------------------------------------------------------------
-// Database
-// ---------------------------------------------------------------------------
-const dbPath = reg.dbPath ?? parsed.dbPath ?? "~/.config/opencode/skill-hub/registry.db";
-const realDbPath = dbPath.replace(/^~/, os.homedir());
-fs.mkdirSync(path.dirname(realDbPath), { recursive: true });
-const db = new DatabaseSync(realDbPath);
-db.exec("PRAGMA foreign_keys = ON;");
+const cfg = loadHubConfig();
+const dbPath = cfg.dbPath.replace(/^~/, os.homedir());
+fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+const db = openRegistry(dbPath);
 
 // Read all skills
 const skills = db
@@ -81,7 +63,8 @@ function main() {
   for (const skill of skills) {
     // Filter by --id
     if (skillId && skill.id !== skillId) continue;
-    if (--limit < 0) break;
+    if (limit <= 0) break;
+    limit--;
 
     // Compute lastUpdateDays from last_update
     let lastUpdateDays = 999;
@@ -114,7 +97,7 @@ function main() {
       db.prepare(
         `INSERT INTO health_checks (skill_id, check_type, status, details, checksum, run_at)
          VALUES (?, 'score', 'ok', 'recalculated via shared engine', ?, ?)`
-      ).run(skill.id, (""), now.toISOString());
+      ).run(skill.id, "", now.toISOString());
     }
 
     console.log(
@@ -128,7 +111,9 @@ function main() {
 }
 
 // Run
-main().catch((e) => {
+try {
+  main();
+} catch (e) {
   console.error("[calculate-score] FATAL:", e);
   process.exit(1);
-});
+}

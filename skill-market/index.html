@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forge &middot; the opencode skill bazaar</title>
+<meta name="description" content="Forge â€” a bazaar marketplace for AI agent skills in opencode format. Browse, inspect and download skills.">
+<style>
+  :root{
+    --bg:#15110c;--bg-2:#1b1610;--panel:#211a12;--panel-2:#2a2116;
+    --ink:#f3ead8;--ink-dim:#b7a889;--ink-faint:#8a7d63;
+    --line:#3a2f20;--line-2:#4a3c28;
+    --copper:#d98e3f;--copper-hi:#f0ab5e;--copper-dim:#8a6a3c;
+    --sage:#a8b58b;--rust:#c2563a;--paper:#f6eeda;
+    --shadow:0 24px 60px -28px rgba(0,0,0,.85);
+    --radius:14px;--maxw:1240px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:
+      radial-gradient(1200px 600px at 12% -8%, rgba(217,142,63,.10), transparent 60%),
+      radial-gradient(900px 500px at 88% 18%, rgba(168,181,139,.07), transparent 55%),
+      var(--bg);
+    color:var(--ink);font-family:"Source Sans 3",system-ui,sans-serif;
+    font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--copper);color:#1a1208}
+  .mono{font-family:"IBM Plex Mono",Consolas,"Cascadia Mono",monospace}
+  .serif{font-family:"Fraunces",Georgia,"Times New Roman",serif}
+  a{color:var(--copper-hi);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px}
+
+  header.brand{display:flex;align-items:center;justify-content:space-between;padding:22px 0;border-bottom:1px solid var(--line)}
+  .brand .logo{display:flex;align-items:center;gap:12px;font-family:"Fraunces",Georgia,"Times New Roman",serif;font-size:22px;font-weight:600;letter-spacing:.2px}
+  .brand .logo em{font-style:italic;color:var(--copper-hi)}
+  .logo .mark{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--copper-hi),var(--rust));display:grid;place-items:center;color:#221407;font-family:"IBM Plex Mono",Consolas,"Cascadia Mono",monospace;font-weight:600;font-size:16px;box-shadow:0 4px 18px -6px rgba(217,142,63,.6)}
+  .brand .meta{display:flex;gap:22px;font-family:"IBM Plex Mono",Consolas,"Cascadia Mono",monospace;font-size:12px;color:var(--ink-faint)}
+  .brand .meta b{color:var(--copper-hi);font-weight:600}
+
+  .hero{padding:64px 0 52px;position:relative}
+  .hero .kicker{display:inline-flex;align-items:center;gap:8px;font-family:"IBM Plex Mono",Consolas,"Cascadia Mono",monospace;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--copper-hi);border:1px solid var(--line-2);border-radius:999px;padding:6px 14px;background:var(--bg-2);margin-bottom:22px}
+  .hero .kicker .dot{width:7px;height:7px;border-radius:50%;background:var(--copper-hi);animation:pulse 2.4s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  .hero h1{font-family:"Fraunces",Georgia,"Times New Roman",serif;font-weight:500;font-size:clamp(44px,7.5vw,86px);line-height:0.98;letter-spacing:-.02em;max-width:16ch}
+  .hero h1 em{font-style:italic;color:var(--copper-hi)}
+  .hero .lede{margin-top:26px;max-width:56ch;color:var(--ink-dim);font-size:19px;font-weight:400}
+  .hero .lede b{color:var(--ink);font-weight:600}
+  .hero .stats{display:grid;grid-template-columns:repeat(4,minmax(0,150px));gap:1px;background:var(--line);border:1px solid var(--line);margin-top:44px;width:max-content;border-radius:12px;overflow:hidden}
+  .hero .stat{background:var(--bg-2);padding:16px 22px}
+  .hero .stat .n{font-family:"Fraunces",Georgia,"Times New Roman",serif;font-size:32px;font-weight:500;color:var(--copper-hi);line-height:1}
+  .hero .stat .l{font-family:"IBM Plex Mono",Consolas,"Cascadia Mono",monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);margin-top:6px}
+  @media(max-width:640px){.hero .stats{grid-template-columns:repeat(2,1fr);width:100%}}
+
+  .toolbar{position:sticky;top:0;z-index:40;background:rgba(21,17,12,.86);backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:34px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+  .search{flex:1 1 220px;position:relative;display:flex;align-items:center}
+  .search svg{position:absolute;left:13px;color:var(--ink-faint);pointer-events:none}
+  .search input{width:100%;background:var(--bg-2);border:1px solid var(--line-2);border-radius:9px;color:var(--ink);padding:11px 14px 11px 42px;font-size:15px;font-family:"Source Sans 3","Segoe UI",system-ui,sans-serif;transition:border-color .15s}
+  .search input:focus{outline:none;border-color:var(--copper);box-shadow:0 0 0 3px rgba(217,142,63,.15)}
+  .search input::placeholder{color:var(--ink-faint)}
+  .cat-filter{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{font-family:"IBM Plex Mono",Consolas,"Cascadia Mono",monospace;font-size:12px;color:var(--ink-dim);background:var(--bg-2);border:1px solid var(--line-2);border-radius:999px;padding:7px 13px;cursor:pointer;transition:all .14s}
+  .chip:hover{border-color:var(--copper-dim);color:var(--ink)}
+  .chip.active{background:var(--copper);border-color:var(--copper);color:#221407;font-weight:600}
+  .chip .cnt{opacity:.6;margin-left:4px}
+  .srcsel{display:flex;align-items:center;gap:8px;font-family:"IBM Plex Mono",Consolas,"Cascadia Mono",monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint)}
+  .srcsel select{background:var(--bg-2);border:1px solid var(--line-2);border-radius:8px;color:var(--ink);padding:9px 10px;font-family:"IBM Plex Mono",Consolas,"Cascadia Mono",monospace;font-size:12px;cursor:pointer}
+  .srcsel select:focus{outline:none;border-color:var(--copper)}
+  .srcsel select option{background:var(--bg-2);color:var(--ink)}
+
+  .result-info{font-family:"IBM Plex Mono",Consolas,"Cascadia Mono",monospace;font-size:12px;color:var(--ink-faint);margin:0 4px 14px;min-height:18px}
+  .loading{font-family:"IBM Plex Mono",Consolas,"Cascadia Mono",monospace;color:var(--copper-hi);font-size:12px}
+
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;padding-bottom:80px}
+  @media(max-width:980px){.grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:640px){.grid{grid-template-columns:1fr}}
+
+  .card{
+    background:linear-gradient(180deg,var(--panel),var(--bg-2));
+    border:1px solid var(--line);border-radius:var(--radius);
+    padding:22px 22px 20px;position:relative;overflow:hidden;
+    display:flex;flex-direction:column;gap:14px;
+    transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+    animation:reveal .5s both;
+    content-visibility:auto;contain-intrinsic-size:auto 240px;
+  }
+  @keyframes reveal{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .card:hover{transform:translateY(-4px);border-color:var(--line-2);box-shadow:var(--shadow)}
+  .card::before{content:"";position:absolute;inset:0 0 auto 0;height:3px;background:linear-gradient(90deg,var(--copper),transparent 60%);opacity:.9}
+  .card.dep::before{background:linear-gradient(90deg,var(--rust),transparent 60%)}
+  .card .tags{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .card .lic{font-family:"IBM Plex Mono",Consolas,"Cascadia Mono",monospace;font-size:10px;color:var(--ink-faint);letter-spacing:.06em;text-transform:uppercase}
+  .card .dep-badge{font-family:"IBM Plex Mono",Consolas,"Cascadia Mono",monospace;font-size:10px;color:#e8b48b;background:rgba(194,86,58,.14);border:1px solid rgba(194,86,58,.4);padding:3px 8px;border-radius:999px}
+  .card h3{font-family:"Fraunces",Georgia,"Times New Roman",serif;font-weight:600;font-size:22px;line-height:1.15;letter-spacing:-.01em;display:flex;align-items:baseline;gap:10px}
+  .card h3 .slug{font-family:"IBM Plex Mono",Consolas,"Cascadia Mono",monospace;font-size:11.5px;color:var(--ink-faint);font-weight:400;letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .card p{color:var(--ink-dim);font-size:14.5px;flex:1;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .card .foot{display:flex;align-items:center;justify-content:space-between;margin-top:2px;gap:8px}
+  .card .cat{font-family:"IBM Plex Mono",Consolas,"Cascadia Mono",monospace;font-size:11px;color:var(--sage);text-transform:uppercase;letter-spacing:.1em}
+  .card .act{display:flex;gap:8px}
+  .card .btn{font-family:"IBM Plex Mono",Consolas,"Cascadia Mono",monospace;font-size:12px;font-weight:600;border-radius:8px;padding:8px 13px;cursor:pointer;transition:all .14s;border:1px solid var(--line-2);background:var(--panel-2);color:var(--ink)}
+  .card .btn:hover{border-color:var(--copper);color:var(--copper-hi)}
+  .card .btn.primary{background:var(--copper);border-color:var(--copper);color:#221407}
+  .card .btn.primary:hover{background:var(--copper-hi);border-color:var(--copper-hi);color:#1a1208}
+  .empty{grid-column:1/-1;text-align:center;padding:70px 20px;color:var(--ink-faint);font-family:"Fraunces",Georgia,"Times New Roman",serif;font-size:26px}
+
+  .overlay{position:fixed;inset:0;background:rgba(10,8,5,.72);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:24px;z-index:100}
+  .overlay.open{display:flex}
+  .modal{background:var(--bg-2);border:1px solid var(--line-2);border-radius:16px;max-width:760px;width:100%;max-height:88vh;overflow:auto;box-shadow:var(--shadow);animation:pop .22s ease}
+  @keyframes pop{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:none}}
+  .modal .head{position:sticky;top:0;background:var(--bg-2);border-bottom:1px solid var(--line);padding:24px 28px 18px;z-index:2}
+  .modal .head .top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+  .modal .close{background:none;border:1px solid var(--line-2);border-radius:8px;color:var(--ink-dim);font-size:18px;width:38px;height:38px;cursor:pointer;flex:none;font-family:"IBM Plex Mono",Consolas,"Cascadia Mono",monospace}
+  .modal .close:hover{color:var(--ink);border-color:var(--copper)}
+  .modal h2{font-family:"Fraunces",Georgia,"Times New Roman",serif;font-weight:600;font-size:29px;line-height:1.1;word-break:break-word}
+  .modal .meta{display:flex;flex-wrap:wrap;gap:14px;margin-top:14px;font-family:"IBM Plex Mono",Consolas,"Cascadia Mono",monospace;font-size:11.5px;color:var(--ink-faint)}
+  .modal .meta span b{color:var(--copper-hi);font-weight:600}
+  .modal .body{padding:26px 28px 30px}
+  .modal .body .intro{font-size:17px;color:var(--ink-dim);margin-bottom:24px}
+  .modal .sec-title{font-family:"IBM Plex Mono",Consolas,"Cascadia Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);margin:26px 0 12px;display:flex;align-items:center;gap:10px}
+  .modal .sec-title::after{content:"";flex:1;height:1px;background:var(--line)}
+  .modal pre{background:#120e09;border:1px solid var(--line);border-radius:10px;padding:18px;font-family:"IBM Plex Mono",Consolas,"Cascadia Mono",monospace;font-size:12.5px;line-height:1.55;color:var(--ink-dim);overflow:auto;max-height:340px;white-space:pre-wrap;word-break:break-word}
+  .modal .dlbar{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+  .modal .dlbar .btn{font-family:"IBM Plex Mono",Consolas,"Cascadia Mono",monospace;font-size:13px;font-weight:600;padding:12px 18px;border-radius:9px;cursor:pointer;border:1px solid var(--line-2);background:var(--panel-2);color:var(--ink)}
+  .modal .dlbar .btn:hover{border-color:var(--copper);color:var(--copper-hi)}
+  .modal .dlbar .btn.primary{background:var(--copper);border-color:var(--copper);color:#221407}
+  .modal .dlbar .btn.primary:hover{background:var(--copper-hi);color:#1a1208}
+
+  .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:var(--paper);color:#2a2112;font-family:"IBM Plex Mono",Consolas,"Cascadia Mono",monospace;font-size:13px;padding:13px 22px;border-radius:10px;opacity:0;pointer-events:none;transition:all .25s;box-shadow:0 14px 40px -12px rgba(0,0,0,.6);z-index:200}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast .err{color:var(--rust)}
+
+  footer{padding:40px 0 60px;border-top:1px solid var(--line);color:var(--ink-faint);font-size:14px}
+  footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px}
+  footer .mono{font-size:12px}
+
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+    html{scroll-behavior:auto}
+  }
+</style>
+</head>
+<body>
+
+<header class="brand wrap">
+  <div class="logo">
+    <span class="mark">F</span>
+    <span>Forge <em>&amp; Flame</em></span>
+  </div>
+  <div class="meta">
+    <span>format <b>opencode</b></span>
+    <span>count <b id="hdrCount">â€“</b></span>
+    <span>v2.0</span>
+  </div>
+</header>
+
+<main>
+  <section class="hero wrap">
+    <div class="kicker"><span class="dot"></span>AI agent skills Â· opencode format</div>
+    <h1>The <em>bazaar</em> of agent skills</h1>
+    <p class="lede">
+      A hand-picked registry of AI agent skills â€” each one a playbook that makes your
+      coding agent sharper. Browse the stalls, inspect the recipe, and <b>download
+      straight into your <span class="mono">.opencode/skills</span></b> folder.
+    </p>
+    <div class="stats">
+      <div class="stat"><div class="n" id="statSkills">â€“</div><div class="l">Skills</div></div>
+      <div class="stat"><div class="n" id="statCats">â€“</div><div class="l">Categories</div></div>
+      <div class="stat"><div class="n" id="statRecipes">â€“</div><div class="l">Recipes loaded</div></div>
+      <div class="stat"><div class="n" id="statSources">â€“</div><div class="l">Sources</div></div>
+    </div>
+  </section>
+
+  <section class="wrap">
+    <div class="toolbar" role="search">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="q" type="search" placeholder="Search skills, e.g. 'testing', 'git', 'design'" aria-label="Search skills" autocomplete="off">
+      </div>
+      <div>
+        <label class="srcsel">
+          <span class="mono">source</span>
+          <select id="src" aria-label="Filter by source">
+            <option value="all">All sources</option>
+          </select>
+        </label>
+      </div>
+      <div class="cat-filter" id="cats" role="group" aria-label="Filter by category"></div>
+    </div>
+
+    <div class="result-info" id="resultInfo" aria-live="polite"></div>
+    <div class="grid" id="grid"></div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Forge &amp; Flame Â· a bazaar of agent skills for <span class="mono">opencode</span></span>
+    <span class="mono">offline Â· sharded Â· MIT</span>
+  </div>
+</footer>
+
+<!-- modal -->
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal" id="modal">
+    <div class="head">
+      <div class="top">
+        <div>
+          <h2 id="modalTitle">Skill</h2>
+          <div class="meta" id="modalMeta"></div>
+        </div>
+        <button type="button" class="close" id="modalClose" aria-label="Close">Ã—</button>
+      </div>
+    </div>
+    <div class="body">
+      <p class="intro" id="modalIntro"></p>
+      <div class="sec-title">Install path</div>
+      <pre id="modalPath"></pre>
+      <div class="sec-title">SKILL.md frontmatter</div>
+      <pre id="modalFm"></pre>
+      <div class="sec-title">Recipe preview</div>
+      <pre id="modalBody"></pre>
+      <div class="dlbar">
+        <button type="button" class="btn primary" id="dlSkill">Download SKILL.md</button>
+        <button type="button" class="btn" id="dlZip">Download full skill (.zip)</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script src="skills-data/meta.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  var CAT_LABEL = {
+    "webapp-frontend":"Web & frontend","backend-api":"Backend & API","data-ai-ml":"Data, AI & ML",
+    "code-quality":"Code quality","git-workflow":"Git & workflow","testing":"Testing","security":"Security",
+    "debugging":"Debugging","agent-orchestration":"Agents & orchestration","devops-infra":"DevOps & infra",
+    "automation-tools":"Automation & tools","content-docs":"Content & docs"
+  };
+  var CAT_ORDER = Object.keys(CAT_LABEL);
+
+  // ---- meta (category/source already precomputed by generator) ----
+  var meta = (window.SKILLS_META || []);
+  var CAT_BY_NAME = {};
+  meta.forEach(function(m){ CAT_BY_NAME[m.name] = m.cat; });
+
+  var DEP_NAMES = { "continuous-learning": true };
+  function isDep(s){ return !!(DEP_NAMES[s.name] || /deprecat/i.test((s.desc||s.description||""))); }
+
+  // counts
+  var srcSet = [], srcLabelsSeen = {};
+  meta.forEach(function(m){ if(!srcLabelsSeen[m.srcLabel]){srcLabelsSeen[m.srcLabel]=1; srcSet.push(m.srcLabel);} });
+  document.getElementById("statSkills").textContent = meta.length;
+  document.getElementById("statCats").textContent = CAT_ORDER.length;
+  document.getElementById("statRecipes").textContent = "0";
+  document.getElementById("statSources").textContent = srcSet.length;
+  document.getElementById("hdrCount").textContent = meta.length;
+
+  // ---- lazy part loader (script injection works on file://) ----
+  var partsLoaded = {};
+  function loadPart(cat){
+    if (partsLoaded[cat]) return Promise.resolve(partsLoaded[cat]);
+    return new Promise(function(resolve,reject){
+      var s=document.createElement("script");
+      s.src="skills-data/part-"+cat+".js";
+      s.onload=function(){ partsLoaded[cat]=(window.SKILLS_PART&&window.SKILLS_PART[cat])||[]; updateRecipeCount(); resolve(partsLoaded[cat]); };
+      s.onerror=function(){ reject(new Error("Failed to load part: "+cat)); };
+      document.head.appendChild(s);
+    });
+  }
+  function updateRecipeCount(){
+    var n=0; Object.keys(partsLoaded).forEach(function(c){ n+=partsLoaded[c].length; });
+    document.getElementById("statRecipes").textContent = n;
+  }
+  function findBody(s){
+    // returns Promise resolving to {frontmatter, body} for skill s
+    if (s._full) return Promise.resolve(s._full);
+    return loadPart(s.cat).then(function(items){
+      for (var i=0;i<items.length;i++){
+        if (items[i].name===s.name){ s._full=items[i]; return items[i]; }
+      }
+      // fallback: empty recipe
+      s._full={name:s.name,folder:s.folder,frontmatter:{name:s.name,description:s.desc},body:""};
+      return s._full;
+    }).catch(function(){ s._full={name:s.name,folder:s.folder,frontmatter:{name:s.name,description:s.desc},body:""}; return s._full; });
+  }
+
+  // ---- toolbar ----
+  var state = { q:"", cat:"", src:"all" };
+  var qInput = document.getElementById("q");
+  qInput.addEventListener("input",function(){ state.q=qInput.value.toLowerCase(); render(); });
+
+  (function(){
+    var srcEl=document.getElementById("src");
+    srcSet.sort().forEach(function(label){
+      var o=document.createElement("option");
+      o.value=label;o.textContent=label;
+      srcEl.appendChild(o);
+    });
+    srcEl.addEventListener("change",function(){ state.src=this.value; render(); });
+  })();
+
+  var catsEl = document.getElementById("cats");
+  function makeChip(key,label,cnt,active){
+    var b=document.createElement("button");
+    b.type="button"; b.className="chip"+(active?" active":""); b.setAttribute("data-cat",key);
+    b.innerHTML=label+'<span class="cnt">'+cnt+"</span>";
+    b.addEventListener("click",function(){
+      catsEl.querySelectorAll(".chip").forEach(function(c){c.classList.remove("active");});
+      state.cat = key==="all"?"":key; b.classList.add("active"); render();
+    });
+    return b;
+  }
+  var counts={};
+  meta.forEach(function(m){ counts[m.cat]=(counts[m.cat]||0)+1; });
+  catsEl.appendChild(makeChip("all","All",meta.length,true));
+  CAT_ORDER.forEach(function(c){ catsEl.appendChild(makeChip(c,CAT_LABEL[c],counts[c]||0,false)); });
+
+  // ---- render ----
+  var grid=document.getElementById("grid");
+  var info=document.getElementById("resultInfo");
+
+  function render(){
+    var q=state.q.trim();
+    var list=meta.filter(function(m){
+      if(state.cat && m.cat!==state.cat) return false;
+      if(state.src!=="all" && m.srcLabel!==state.src) return false;
+      if(!q) return true;
+      return (m.name+" "+m.desc+" "+CAT_LABEL[m.cat]+" "+m.srcLabel).toLowerCase().indexOf(q)!==-1;
+    });
+    info.textContent = list.length + (list.length===1?" skill":" skills") +
+      (state.cat?" in "+CAT_LABEL[state.cat]:"") +
+      (state.src!=="all"?" from "+state.src:"") +
+      (q?' matching "'+qInput.value.trim()+'"':'');
+    grid.innerHTML="";
+    if(!list.length){
+      var e=document.createElement("div"); e.className="empty";
+      e.textContent="No skills on this stall â€” widen the search."; grid.appendChild(e); return;
+    }
+    var frag=document.createDocumentFragment();
+    list.forEach(function(m,i){
+      frag.appendChild(cardEl(m,i));
+    });
+    grid.appendChild(frag);
+  }
+
+  function cardEl(m,idx){
+    var card=document.createElement("article");
+    card.className="card"+(isDep(m)?" dep":"");
+    card.setAttribute("data-name",m.name);
+    card.style.animationDelay=(idx%12)*18+"ms";
+    var dep=isDep(m)?'<span class="dep-badge">deprecated</span>':"";
+    var s={name:m.name,folder:m.folder||m.name,desc:m.desc,license:m.license||"MIT",
+           cat:m.cat,srcLabel:m.srcLabel||m.source};
+    card.innerHTML=
+      '<div class="tags"><span class="lic">'+esc(s.license)+' Â· '+esc(s.srcLabel)+'</span>'+dep+'</div>'+
+      '<h3>'+esc(s.name)+' <span class="slug">'+esc(CAT_LABEL[s.cat])+'</span></h3>'+
+      '<p>'+esc(s.desc)+'</p>'+
+      '<div class="foot"><span class="cat">'+esc(CAT_LABEL[s.cat])+'</span>'+
+      '<div class="act">'+
+        '<button type="button" class="btn" data-inspect="'+esc(s.name)+'">Inspect</button>'+
+        '<button type="button" class="btn primary" data-dl="'+esc(s.name)+'">Download</button>'+
+      '</div></div>';
+    card.querySelector('[data-inspect]').addEventListener("click",function(){ openModal(s); });
+    card.querySelector('[data-dl]').addEventListener("click",function(){ downloadSkill(s); });
+    return card;
+  }
+
+  function esc(str){ return String(str).replace(/[&<>"']/g,function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+
+  // ---- modal ----
+  var overlay=document.getElementById("overlay");
+  var currentSkill=null;
+  function modalLoading(s){
+    overlay.classList.add("open"); document.body.style.overflow="hidden";
+    document.getElementById("modalTitle").textContent=s.name;
+    document.getElementById("modalIntro").textContent="Loading recipeâ€¦";
+    document.getElementById("modalFm").textContent="";
+    document.getElementById("modalBody").textContent="";
+    currentSkill=s;
+  }
+  function openModal(s){
+    modalLoading(s);
+    var metaEl=document.getElementById("modalMeta");
+    metaEl.innerHTML='<span>source <b>'+esc(s.srcLabel)+'</b></span>'+
+      '<span>category <b>'+esc(CAT_LABEL[s.cat])+'</b></span>'+
+      '<span>license <b>'+esc(s.license)+'</b></span>'+
+      (isDep(s)?'<span class="dep-badge" style="color:#e8b48b">deprecated</span>':'');
+    document.getElementById("modalPath").textContent=".opencode/skills/"+s.folder+"/SKILL.md";
+    document.getElementById("modalIntro").textContent=s.desc;
+    document.getElementById("dlSkill").onclick=function(){ downloadSkill(s); };
+    document.getElementById("dlZip").onclick=function(){ downloadZip(s); };
+    // lazy load the recipe body
+    document.getElementById("modalBody").textContent="Loading recipeâ€¦";
+    findBody(s).then(function(full){
+      if (currentSkill!==s) return;
+      document.getElementById("modalFm").textContent=fmString(full);
+      document.getElementById("modalBody").textContent=
+        (full.body||"").slice(0,3000)+(((full.body||"").length>3000)?"\n\nâ€¦ (truncated preview)":"");
+    }).catch(function(){});
+    document.getElementById("modalClose").focus && document.getElementById("modalClose").blur();
+  }
+  function fmString(full){
+    var fm=full.frontmatter||{}; var lines=["---"];
+    Object.keys(fm).forEach(function(k){ lines.push(k+": "+fm[k]); });
+    lines.push("---",""); return lines.join("\n");
+  }
+  function closeModal(){ overlay.classList.remove("open"); document.body.style.overflow=""; }
+  document.getElementById("modalClose").addEventListener("click",closeModal);
+  overlay.addEventListener("click",function(e){ if(e.target===overlay) closeModal(); });
+  document.addEventListener("keydown",function(e){ if(e.key==="Escape") closeModal(); });
+
+  // ---- download ----
+  function skillMarkdown(full){
+    var fm=["---"]; var fm2=full.frontmatter||{};
+    Object.keys(fm2).forEach(function(k){ fm.push(k+": "+fm2[k]); });
+    fm.push("---",""); return fm.join("\n")+(full.body||"");
+  }
+  function downloadSkill(s){
+    findBody(s).then(function(full){
+      var blob=new Blob([skillMarkdown(full)],{type:"text/markdown;charset=utf-8"});
+      triggerDownload(blob,s.folder+"/SKILL.md");
+      toast("Downloaded "+s.name+"/SKILL.md");
+    }).catch(function(){ toastErr("Could not load recipe for "+s.name); });
+  }
+  function downloadZip(s){
+    if(!window.JSZip){ toastErr("Zip helper not loaded â€” grabbing SKILL.md instead"); downloadSkill(s); return; }
+    findBody(s).then(function(full){
+      try{
+        var zip=new JSZip();
+        zip.file(s.folder+"/SKILL.md", skillMarkdown(full));
+        zip.generateAsync({type:"blob"}).then(function(blob){
+          triggerDownload(blob,s.folder+".zip"); toast("Downloaded "+s.folder+".zip");
+        });
+      }catch(e){ toastErr("Zip failed â€” "+(e&&e.message||e)); }
+    }).catch(function(){ toastErr("Could not load recipe for "+s.name); });
+  }
+  function triggerDownload(blob,filename){
+    var url=URL.createObjectURL(blob); var a=document.createElement("a");
+    a.href=url;a.download=filename;document.body.appendChild(a);a.click();
+    setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); },400);
+  }
+  function toast(msg){ showToast(msg,false); }
+  function toastErr(msg){ showToast(msg,true); }
+  function showToast(msg,isErr){
+    var t=document.getElementById("toast");
+    t.className="toast"+(isErr?" err":""); t.innerHTML=msg; void t.offsetWidth;
+    t.className="toast show"+(isErr?" err":"");
+    clearTimeout(showToast._t); showToast._t=setTimeout(function(){ t.className="toast"; },2600);
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>

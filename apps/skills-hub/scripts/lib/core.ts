@@ -9,7 +9,7 @@ import { DatabaseSync } from "node:sqlite";
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
-import { contentHash } from "./scoring.js";
+import { contentHash } from "./scoring.ts";
 
 export const REGISTRY_DB = path.join(os.homedir(), ".config", "opencode", "skill-hub", "registry.db");
 export const SKILLS_ROOT = path.join(os.homedir(), ".config", "opencode", "skills");
@@ -44,6 +44,20 @@ export function openRegistry(dbPath: string = REGISTRY_DB): DatabaseSync {
   fs.mkdirSync(path.dirname(dbPath), { recursive: true });
   const db = new DatabaseSync(dbPath);
   db.exec("PRAGMA foreign_keys = ON;");
+  // Bootstrap the schema for a brand-new (empty) database before migrating.
+  const tables = (db.prepare("SELECT name FROM sqlite_master WHERE type='table'").all() as Array<{ name: string }>).map((t) => t.name);
+  if (tables.length === 0) {
+    db.exec(`CREATE TABLE IF NOT EXISTS installations (
+      skill_id TEXT PRIMARY KEY,
+      install_path TEXT,
+      status TEXT DEFAULT 'installed',
+      installed_at TEXT NOT NULL,
+      removed_at TEXT,
+      installed_commit TEXT,
+      updated_at TEXT,
+      last_used TEXT
+    )`);
+  }
   migrateRegistry(db);
   return db;
 }

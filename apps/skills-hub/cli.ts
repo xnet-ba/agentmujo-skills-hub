@@ -215,4 +215,4 @@ switch (cmd) {
     process.exit(cmd ? 2 : 0);
 }
 d.close();
-console.log(`\nRegistry: ${REGISTRY_DB}\nSkills root: ${path.join(os.homedir(), ".config", "opencode", "skills")}`);
+console.log(`\nRegistry: ${REGISTRY_DB}\nSkills root: ${path.join(process.env.USERPROFILE || process.env.HOME || "", ".config", "opencode", "skills")}`);
