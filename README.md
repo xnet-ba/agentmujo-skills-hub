@@ -1,7 +1,7 @@
 <!-- xnet-ba-matrix-header-v1 -->
 <div align="center">
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=00FF41&height=140&section=header&text=agentmujo-skills-hub&fontColor=000000&fontSize=32&fontAlignY=32&desc=open-source%20AI%20iz%20BiH&descAlignY=55" width="100%" alt="agentmujo-skills-hub"/>
+<img src="https://capsule-render.vercel.app/api?type=waving&color=00FF41&height=140&section=header&text=agentmujo-skills-hub&fontColor=000000&fontSize=32&fontAlignY=32&desc=Registry%20AI%20skillsa%3A%20pretraga%20%2B%20install%20%28OpenCode%20plugin%29&descAlignY=55" width="100%" alt="agentmujo-skills-hub"/>
 
 [![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&size=16&duration=2800&pause=800&color=00FF41&center=true&vCenter=true&width=700&lines=xnet-ba+%3A%3A+open-source+AI+iz+BiH;citaj+README+pa+pokreni;PR+dobrodosli)](https://github.com/xnet-ba/agentmujo-skills-hub)
 
