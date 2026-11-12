@@ -1,3 +1,19 @@
+<!-- xnet-ba-matrix-header-v1 -->
+<div align="center">
+
+<img src="https://capsule-render.vercel.app/api?type=waving&color=00FF41&height=140&section=header&text=agentmujo-skills-hub&fontColor=000000&fontSize=32&fontAlignY=32&desc=open-source%20AI%20iz%20BiH&descAlignY=55" width="100%" alt="agentmujo-skills-hub"/>
+
+[![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&size=16&duration=2800&pause=800&color=00FF41&center=true&vCenter=true&width=700&lines=xnet-ba+%3A%3A+open-source+AI+iz+BiH;citaj+README+pa+pokreni;PR+dobrodosli)](https://github.com/xnet-ba/agentmujo-skills-hub)
+
+[![Stars](https://img.shields.io/github/stars/xnet-ba/agentmujo-skills-hub?style=flat-square&color=00FF41&labelColor=000000)](https://github.com/xnet-ba/agentmujo-skills-hub/stargazers)
+[![License](https://img.shields.io/github/license/xnet-ba/agentmujo-skills-hub?style=flat-square&color=00FF41&labelColor=000000)](LICENSE)
+[![Top lang](https://img.shields.io/github/languages/top/xnet-ba/agentmujo-skills-hub?style=flat-square&color=00FF41&labelColor=000000)](https://github.com/xnet-ba/agentmujo-skills-hub)
+[![Last commit](https://img.shields.io/github/last-commit/xnet-ba/agentmujo-skills-hub?style=flat-square&color=00FF41&labelColor=000000)](https://github.com/xnet-ba/agentmujo-skills-hub/commits)
+[![matrix](https://img.shields.io/badge/MATRIX-xnet--ba-00FF41?style=flat-square&labelColor=000000)](https://github.com/xnet-ba)
+
+</div>
+
+---
 # AgentMujo Skills Hub
 
 Centralni katalog, registry i installer za **13,888 OpenCode skills** iz 25+ javnih izvora
@@ -126,3 +142,10 @@ Score se recalcuira naredbom `agentmujo-skills refresh` ili `node calculate-scor
 ```json
 { "total": 13888, "active": X, "stale": Y, "invalid": Z, "verified": V, "avgScore": S }
 ```
+
+---
+
+<div align="center">
+<img src="https://raw.githubusercontent.com/xnet-ba/xnet-ba/main/assets/divider.svg" width="100%" alt=""/>
+<sup>part of <a href="https://github.com/xnet-ba">xnet-ba matrix</a> — open-source AI iz BiH</sup>
+</div>
